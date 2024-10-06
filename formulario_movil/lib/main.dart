@@ -1,125 +1,155 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Formulario de Validación',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.teal,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false, 
+      home: Scaffold(
+        backgroundColor: Colors.teal[50],
+        appBar: AppBar(
+          title: const Text('Formulario de Validación'),
+          elevation: 0,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Formulario(),
+        ),
+      ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class Formulario extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _FormularioState createState() => _FormularioState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _FormularioState extends State<Formulario> {
+  final _formKey = GlobalKey<FormState>();
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final TextEditingController nombreController = TextEditingController();
+  final TextEditingController apellidosController = TextEditingController();
+  final TextEditingController direccionController = TextEditingController();
+  final TextEditingController tarjetaController = TextEditingController();
+  final TextEditingController vencimientoController = TextEditingController();
+  final TextEditingController cvvController = TextEditingController();
+
+  String soloLetras = r'^[a-zA-Z\s]+$';
+  String soloNumeros = r'^\d+$';
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            'Complete sus detalles',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal[800],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+
+                    //nombre
+                    buildTextField('Nombre', nombreController, soloLetras, 'Por favor ingrese su nombre'),
+                    const SizedBox(height: 10),
+
+                    //apellidos
+                    buildTextField('Apellidos', apellidosController, soloLetras, 'Por favor ingrese sus apellidos'),
+                    const SizedBox(height: 10),
+
+                    //dirección
+                    buildTextField('Dirección', direccionController, null, 'Por favor ingrese su dirección'),
+                    const SizedBox(height: 10),
+
+                    //número de la tarjeta
+                    buildTextField('Número de la tarjeta', tarjetaController, soloNumeros, 'El número de tarjeta debe tener 16 dígitos', isCard: true),
+                    const SizedBox(height: 10),
+
+                    //vencimiento
+                    buildTextField('Mes/Año de vencimiento (MM/YY)', vencimientoController, r'^\d{2}/\d{2}$', 'Formato MM/YY', isExpiry: true),
+                    const SizedBox(height: 10),
+
+                    //CVV
+                    buildTextField('CVV', cvvController, soloNumeros, 'El CVV debe tener 3 dígitos', isCVV: true),
+                    const SizedBox(height: 20),
+                    
+                    //envío
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Procesando datos')));
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: const Text(
+                        'Enviar',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+    );
+  }
+
+  TextFormField buildTextField(String label, TextEditingController controller, String? pattern, String errorMessage, {bool isCard = false, bool isExpiry = false, bool isCVV = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      keyboardType: isCard || isCVV ? TextInputType.number : TextInputType.text,
+      inputFormatters: [
+        if (isCard || isCVV) FilteringTextInputFormatter.digitsOnly,
+        if (isExpiry) FilteringTextInputFormatter(RegExp(r'^[0-9/]+$'), allow: true),
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Por favor ingrese $label';
+        } else if (pattern != null && !RegExp(pattern).hasMatch(value)) {
+          return errorMessage;
+        }
+        return null;
+      },
     );
   }
 }
